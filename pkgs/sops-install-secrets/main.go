@@ -723,9 +723,6 @@ func (app *appContext) validateManifest() error {
 		if len(m.SSHKeyPaths) > 0 {
 			return fmt.Errorf(errorFmt, "sshKeyPaths")
 		}
-		if m.AgeKeyFile != "" {
-			return fmt.Errorf(errorFmt, "ageKeyFile")
-		}
 	}
 
 	for i := range m.Secrets {
