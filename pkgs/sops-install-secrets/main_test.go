@@ -349,6 +349,40 @@ func TestValidateManifest(t *testing.T) {
 	ok(t, installSecrets([]string{"sops-install-secrets", "-check-mode=sopsfile", path}))
 }
 
+func TestValidateManifestAllowsGnupgHomeAndAgeKeyFile(t *testing.T) {
+	assets := testAssetPath()
+
+	testdir := newTestDir(t)
+	defer testdir.Remove()
+
+	nobody := "nobody"
+	nogroup := "nogroup"
+	s := secret{
+		Name:         "test",
+		Key:          "test_key",
+		Owner:        &nobody,
+		Group:        &nogroup,
+		SopsFile:     path.Join(assets, "secrets.yaml"),
+		Path:         path.Join(testdir.path, "test-target"),
+		Mode:         "0400",
+		RestartUnits: []string{},
+		ReloadUnits:  []string{},
+	}
+
+	m := manifest{
+		Secrets:           []secret{s},
+		SecretsMountPoint: testdir.secretsPath,
+		SymlinkPath:       testdir.symlinkPath,
+		GnupgHome:         path.Join(assets, "gnupghome"),
+		AgeKeyFile:        path.Join(assets, "age-keys.txt"),
+	}
+
+	path := writeManifest(t, testdir.path, &m)
+
+	ok(t, installSecrets([]string{"sops-install-secrets", "-check-mode=manifest", path}))
+	ok(t, installSecrets([]string{"sops-install-secrets", "-check-mode=sopsfile", path}))
+}
+
 func TestIsValidFormat(t *testing.T) {
 	generateCase := func(input string, mustBe bool) {
 		result := IsValidFormat(input)
